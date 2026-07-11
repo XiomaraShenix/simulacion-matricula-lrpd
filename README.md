@@ -1,55 +1,31 @@
-# LRPD - Simulación del proceso de matrícula en línea
+# Simulación del proceso de matrícula en línea
 
-Aplicación visual desarrollada con Python, Streamlit y SimPy.
+Aplicación académica de simulación de eventos discretos desarrollada con
+Python, Streamlit y SimPy.
 
-## Archivos
+## Alcance
 
-- `app.py`: página principal en Streamlit.
-- `simulacion.py`: modelo de eventos discretos.
-- `requirements.txt`: librerías necesarias.
-- `.streamlit/config.toml`: configuración visual.
+El modelo toma como referencia pública el procedimiento de matrícula en
+Campus Solutions de la Universidad Privada San Juan Bautista. No se conecta
+con el sistema real, no procesa datos institucionales y no representa métricas
+oficiales. Los tiempos, capacidades y probabilidades son parámetros de
+simulación.
 
-## Instalación en VS Code
+## Flujo agrupado
 
-Abre la terminal dentro de la carpeta del proyecto y ejecuta:
+1. Validación académica, requisitos y pagos.
+2. Selección de cursos, secciones, turnos y componentes.
+3. Validación del carrito, cruces, restricciones y vacantes.
+4. Inscripción, finalización y consulta del horario.
+
+## Ejecución local
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\activate
 python -m pip install -r requirements.txt
-```
-
-## Ejecutar la página
-
-```powershell
 python -m streamlit run app.py
 ```
 
-Streamlit abrirá la aplicación en el navegador. Si no se abre automáticamente,
-copia en el navegador la dirección que aparece en la terminal, normalmente:
+## Despliegue
 
-```text
-http://localhost:8501
-```
-
-## Uso
-
-1. Configura la cantidad de estudiantes, llegadas, capacidades, tiempos y vacantes.
-2. Presiona **Ejecutar simulación**.
-3. Revisa el resumen, etapas, detalle y eventos.
-4. Descarga el reporte Excel y el registro de eventos.
-
-## Compartir el proyecto en otra computadora Windows
-
-1. Comprime o copia toda esta carpeta, excepto `.venv`.
-2. En la otra computadora, descomprime el archivo.
-3. Instala Python 3.10 o superior.
-4. Ejecuta `INSTALAR_PROYECTO.bat` una sola vez.
-5. Después abre `EJECUTAR_PAGINA.bat`.
-
-La carpeta `.venv` no debe copiarse entre computadoras porque contiene rutas y archivos propios del equipo donde se creó.
-
-## Uso sin instalar en otras computadoras
-
-Para abrir el sistema mediante un enlace desde cualquier computadora, despliega el proyecto en Streamlit Community Cloud usando un repositorio de GitHub.
-
+Subir `app.py`, `simulacion.py`, `requirements.txt` y `.streamlit/config.toml`
+a GitHub y desplegar `app.py` en Streamlit Community Cloud.
