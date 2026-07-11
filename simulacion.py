@@ -13,20 +13,16 @@ class ConfiguracionEscenario:
     nombre: str
     estudiantes: int = 200
     media_llegadas: float = 0.35
-
     cap_validacion: int = 2
     cap_seleccion: int = 3
     cap_verificacion: int = 2
     cap_confirmacion: int = 2
-
     t_validacion: float = 1.50
     t_seleccion: float = 2.50
     t_verificacion: float = 1.00
     t_confirmacion: float = 0.80
-
     vacantes: int = 170
     prob_usuario_valido: float = 0.96
-    prob_carrito_valido: float = 0.93
     semilla: int = 42
 
 
@@ -40,21 +36,7 @@ class ResultadoEscenario:
 
 
 class SimuladorMatricula:
-    """
-    Modelo académico de simulación de eventos discretos.
-
-    El flujo agrupa los pasos públicos del proceso de matrícula en Campus
-    Solutions en cuatro etapas principales:
-    1. Validación académica y de condiciones.
-    2. Selección de cursos y secciones.
-    3. Validación del carrito, restricciones y vacantes.
-    4. Inscripción y confirmación.
-    """
-
-    ETAPA_VALIDACION = "Validación académica"
-    ETAPA_SELECCION = "Selección de cursos y secciones"
-    ETAPA_CARRITO = "Validación del carrito"
-    ETAPA_CONFIRMACION = "Inscripción y confirmación"
+    """Modelo de simulación de eventos discretos para matrícula en línea."""
 
     def __init__(self, configuracion: ConfiguracionEscenario):
         self.c = configuracion
@@ -62,32 +44,24 @@ class SimuladorMatricula:
         self.env = simpy.Environment()
 
         self.recursos = {
-            self.ETAPA_VALIDACION: simpy.Resource(
-                self.env, capacity=configuracion.cap_validacion
-            ),
-            self.ETAPA_SELECCION: simpy.Resource(
-                self.env, capacity=configuracion.cap_seleccion
-            ),
-            self.ETAPA_CARRITO: simpy.Resource(
-                self.env, capacity=configuracion.cap_verificacion
-            ),
-            self.ETAPA_CONFIRMACION: simpy.Resource(
-                self.env, capacity=configuracion.cap_confirmacion
-            ),
+            "Validación": simpy.Resource(self.env, capacity=configuracion.cap_validacion),
+            "Selección": simpy.Resource(self.env, capacity=configuracion.cap_seleccion),
+            "Verificación": simpy.Resource(self.env, capacity=configuracion.cap_verificacion),
+            "Confirmación": simpy.Resource(self.env, capacity=configuracion.cap_confirmacion),
         }
 
         self.capacidades = {
-            self.ETAPA_VALIDACION: configuracion.cap_validacion,
-            self.ETAPA_SELECCION: configuracion.cap_seleccion,
-            self.ETAPA_CARRITO: configuracion.cap_verificacion,
-            self.ETAPA_CONFIRMACION: configuracion.cap_confirmacion,
+            "Validación": configuracion.cap_validacion,
+            "Selección": configuracion.cap_seleccion,
+            "Verificación": configuracion.cap_verificacion,
+            "Confirmación": configuracion.cap_confirmacion,
         }
 
         self.tiempos_promedio = {
-            self.ETAPA_VALIDACION: configuracion.t_validacion,
-            self.ETAPA_SELECCION: configuracion.t_seleccion,
-            self.ETAPA_CARRITO: configuracion.t_verificacion,
-            self.ETAPA_CONFIRMACION: configuracion.t_confirmacion,
+            "Validación": configuracion.t_validacion,
+            "Selección": configuracion.t_seleccion,
+            "Verificación": configuracion.t_verificacion,
+            "Confirmación": configuracion.t_confirmacion,
         }
 
         self.vacantes_restantes = configuracion.vacantes
@@ -119,26 +93,20 @@ class SimuladorMatricula:
 
         with recurso.request() as solicitud:
             yield solicitud
-
             espera = self.env.now - llegada_cola
             self.esperas[etapa].append(espera)
-
             self.registrar_evento(
                 estudiante,
                 f"inicia {etapa.lower()} (espera: {espera:.2f} min)",
             )
 
-            servicio = self.generar_tiempo_servicio(
-                self.tiempos_promedio[etapa]
-            )
+            servicio = self.generar_tiempo_servicio(self.tiempos_promedio[etapa])
             self.tiempos_servicio[etapa].append(servicio)
-
             yield self.env.timeout(servicio)
             self.registrar_evento(estudiante, f"finaliza {etapa.lower()}")
 
     def finalizar(self, estudiante: int, llegada: float, estado: str) -> None:
         salida = self.env.now
-
         self.detalle.append(
             {
                 "Estudiante": estudiante,
@@ -152,118 +120,53 @@ class SimuladorMatricula:
 
     def proceso_estudiante(self, estudiante: int):
         llegada = self.env.now
-        self.registrar_evento(estudiante, "ingresa al proceso de matrícula")
+        self.registrar_evento(estudiante, "llegó al sistema")
 
-        # 1. Condiciones académicas, requisitos y pagos
-        yield self.env.process(
-            self.atender_etapa(estudiante, self.ETAPA_VALIDACION)
-        )
+        yield self.env.process(self.atender_etapa(estudiante, "Validación"))
 
         if float(self.rng.random()) > self.c.prob_usuario_valido:
-            self.finalizar(
-                estudiante,
-                llegada,
-                "Rechazado: requisitos o pagos pendientes",
-            )
+            self.finalizar(estudiante, llegada, "Rechazado: usuario inválido")
             return
 
-        # 2. Selección de cursos, secciones, turnos y componentes
-        yield self.env.process(
-            self.atender_etapa(estudiante, self.ETAPA_SELECCION)
-        )
-
-        # 3. Carrito: cruces, créditos, restricciones y vacantes
-        yield self.env.process(
-            self.atender_etapa(estudiante, self.ETAPA_CARRITO)
-        )
-
-        if float(self.rng.random()) > self.c.prob_carrito_valido:
-            self.finalizar(
-                estudiante,
-                llegada,
-                "Rechazado: cruce o restricción académica",
-            )
-            return
+        yield self.env.process(self.atender_etapa(estudiante, "Selección"))
+        yield self.env.process(self.atender_etapa(estudiante, "Verificación"))
 
         if self.vacantes_restantes <= 0:
-            self.finalizar(
-                estudiante,
-                llegada,
-                "Rechazado: sin vacantes",
-            )
+            self.finalizar(estudiante, llegada, "Rechazado: sin vacantes")
             return
 
         self.vacantes_restantes -= 1
-
-        # 4. Inscripción y finalización
-        yield self.env.process(
-            self.atender_etapa(estudiante, self.ETAPA_CONFIRMACION)
-        )
-
-        self.registrar_evento(
-            estudiante,
-            "horario disponible para consulta",
-        )
-        self.finalizar(
-            estudiante,
-            llegada,
-            "Matrícula completada",
-        )
+        yield self.env.process(self.atender_etapa(estudiante, "Confirmación"))
+        self.finalizar(estudiante, llegada, "Matrícula exitosa")
 
     def generar_llegadas(self):
         for estudiante in range(1, self.c.estudiantes + 1):
             self.env.process(self.proceso_estudiante(estudiante))
 
             if estudiante < self.c.estudiantes:
-                intervalo = float(
-                    self.rng.exponential(self.c.media_llegadas)
-                )
+                intervalo = float(self.rng.exponential(self.c.media_llegadas))
                 yield self.env.timeout(intervalo)
 
     def ejecutar(self) -> ResultadoEscenario:
         self.env.process(self.generar_llegadas())
         self.env.run()
 
-        detalle = (
-            pd.DataFrame(self.detalle)
-            .sort_values("Estudiante")
-            .reset_index(drop=True)
-        )
+        detalle = pd.DataFrame(self.detalle).sort_values("Estudiante").reset_index(drop=True)
 
-        exitosas = int(
-            (detalle["Estado"] == "Matrícula completada").sum()
-        )
-        rechazadas_condiciones = int(
-            (
-                detalle["Estado"]
-                == "Rechazado: requisitos o pagos pendientes"
-            ).sum()
-        )
-        rechazadas_carrito = int(
-            (
-                detalle["Estado"]
-                == "Rechazado: cruce o restricción académica"
-            ).sum()
+        exitosas = int((detalle["Estado"] == "Matrícula exitosa").sum())
+        rechazadas_usuario = int(
+            (detalle["Estado"] == "Rechazado: usuario inválido").sum()
         )
         rechazadas_vacantes = int(
             (detalle["Estado"] == "Rechazado: sin vacantes").sum()
         )
-        rechazadas = (
-            rechazadas_condiciones
-            + rechazadas_carrito
-            + rechazadas_vacantes
-        )
+        rechazadas = rechazadas_usuario + rechazadas_vacantes
 
-        total_esperas = sum(
-            sum(valores) for valores in self.esperas.values()
-        )
-        cantidad_esperas = sum(
-            len(valores) for valores in self.esperas.values()
-        )
+        total_esperas = sum(sum(valores) for valores in self.esperas.values())
+        cantidad_esperas = sum(len(valores) for valores in self.esperas.values())
         espera_promedio = total_esperas / max(cantidad_esperas, 1)
 
         cola_mayor = max(self.colas_maximas.values())
-
         if cola_mayor <= 3:
             congestion = "Baja"
         elif cola_mayor <= 10:
@@ -273,17 +176,14 @@ class SimuladorMatricula:
 
         duracion = float(self.env.now)
         filas_etapas = []
-
         for etapa in self.recursos:
             espera_etapa = self.esperas[etapa]
             servicio_etapa = self.tiempos_servicio[etapa]
-
             utilizacion = (
                 sum(servicio_etapa)
                 / max(self.capacidades[etapa] * duracion, 1e-9)
                 * 100
             )
-
             filas_etapas.append(
                 {
                     "Escenario": self.c.nombre,
@@ -291,20 +191,13 @@ class SimuladorMatricula:
                     "Capacidad": self.capacidades[etapa],
                     "Atenciones": len(servicio_etapa),
                     "Espera promedio (min)": round(
-                        sum(espera_etapa)
-                        / max(len(espera_etapa), 1),
-                        2,
+                        sum(espera_etapa) / max(len(espera_etapa), 1), 2
                     ),
                     "Servicio promedio (min)": round(
-                        sum(servicio_etapa)
-                        / max(len(servicio_etapa), 1),
-                        2,
+                        sum(servicio_etapa) / max(len(servicio_etapa), 1), 2
                     ),
                     "Cola máxima": self.colas_maximas[etapa],
-                    "Utilización estimada (%)": round(
-                        min(utilizacion, 100.0),
-                        2,
-                    ),
+                    "Utilización estimada (%)": round(min(utilizacion, 100.0), 2),
                 }
             )
 
@@ -318,29 +211,18 @@ class SimuladorMatricula:
                     "Vacantes iniciales": self.c.vacantes,
                     "Matrículas exitosas": exitosas,
                     "Solicitudes rechazadas": rechazadas,
-                    "Rechazos por condiciones": rechazadas_condiciones,
-                    "Rechazos por validación": rechazadas_carrito,
+                    "Rechazos por usuario": rechazadas_usuario,
                     "Rechazos por vacantes": rechazadas_vacantes,
                     "Tasa de éxito (%)": round(
-                        exitosas
-                        / max(self.c.estudiantes, 1)
-                        * 100,
-                        2,
+                        exitosas / max(self.c.estudiantes, 1) * 100, 2
                     ),
                     "Tiempo promedio total (min)": round(
-                        float(detalle["Tiempo total (min)"].mean()),
-                        2,
+                        float(detalle["Tiempo total (min)"].mean()), 2
                     ),
-                    "Espera promedio (min)": round(
-                        espera_promedio,
-                        2,
-                    ),
+                    "Espera promedio (min)": round(espera_promedio, 2),
                     "Cola máxima": cola_mayor,
                     "Congestión": congestion,
-                    "Duración simulada (min)": round(
-                        duracion,
-                        2,
-                    ),
+                    "Duración simulada (min)": round(duracion, 2),
                 }
             ]
         )
@@ -368,9 +250,6 @@ def construir_comparacion(
     resultados: dict[str, ResultadoEscenario],
 ) -> pd.DataFrame:
     return pd.concat(
-        [
-            resultados["actual"].resumen,
-            resultados["mejorado"].resumen,
-        ],
+        [resultados["actual"].resumen, resultados["mejorado"].resumen],
         ignore_index=True,
     )
