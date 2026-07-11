@@ -14,24 +14,19 @@ class ConfiguracionEscenario:
     estudiantes: int = 200
     media_llegadas: float = 0.35
 
-    # Capacidades de atención por etapa
     cap_validacion: int = 2
     cap_seleccion: int = 3
     cap_verificacion: int = 2
     cap_confirmacion: int = 2
 
-    # Tiempos promedio por etapa, expresados en minutos simulados
     t_validacion: float = 1.50
     t_seleccion: float = 2.50
     t_verificacion: float = 1.00
     t_confirmacion: float = 0.80
 
     vacantes: int = 170
-
-    # Probabilidades del modelo
     prob_usuario_valido: float = 0.96
     prob_carrito_valido: float = 0.93
-
     semilla: int = 42
 
 
