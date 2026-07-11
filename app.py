@@ -266,29 +266,13 @@ st.markdown(
         <div class="badge">Optimización y Simulación de Sistemas · LRPD</div>
         <h1>Simulación del proceso de matrícula en línea</h1>
         <p>
-            Modelo académico desarrollado en Python, Streamlit y SimPy. El flujo toma
-            como referencia pública el proceso de matrícula en Campus Solutions de
-            la UPSJB y lo agrupa en etapas para analizar colas, tiempos, vacantes y
-            escenarios de mejora.
+            Aplicación desarrollada en Python, Streamlit y SimPy para representar
+            llegadas de estudiantes, colas, atención por etapas, disponibilidad de
+            vacantes y comparación entre un escenario actual y uno mejorado.
         </p>
     </div>
     """,
     unsafe_allow_html=True,
-)
-
-st.info(
-    "Alcance: esta aplicación no está conectada a Campus Solutions ni utiliza "
-    "datos internos de la UPSJB. El procedimiento institucional se usa como "
-    "referencia académica; los tiempos, capacidades y probabilidades son "
-    "parámetros simulados."
-)
-
-st.markdown(
-    """
-    **Flujo de referencia agrupado:** acceso y condiciones académicas → selección
-    de cursos y secciones → validación del carrito, restricciones y vacantes →
-    inscripción, finalización y consulta de horario.
-    """
 )
 
 with st.sidebar:
@@ -329,46 +313,38 @@ with st.sidebar:
             key="vac_actual",
         )
         prob_actual = st.slider(
-            "Probabilidad de cumplir requisitos y pagos",
+            "Probabilidad de usuario válido",
             min_value=0.50,
             max_value=1.00,
             value=0.96,
             step=0.01,
             key="prob_actual",
         )
-        prob_carrito_actual = st.slider(
-            "Probabilidad de superar validación del carrito",
-            min_value=0.50,
-            max_value=1.00,
-            value=0.93,
-            step=0.01,
-            key="prob_carrito_actual",
-        )
         cap_val_actual = st.number_input(
-            "Capacidad: validación académica", 1, 50, 2, key="cva"
+            "Capacidad: validación", 1, 50, 2, key="cva"
         )
         cap_sel_actual = st.number_input(
-            "Capacidad: selección de cursos", 1, 50, 3, key="csa"
+            "Capacidad: selección", 1, 50, 3, key="csa"
         )
         cap_ver_actual = st.number_input(
-            "Capacidad: validación del carrito", 1, 50, 2, key="cvera"
+            "Capacidad: verificación", 1, 50, 2, key="cvera"
         )
         cap_con_actual = st.number_input(
-            "Capacidad: inscripción final", 1, 50, 2, key="cca"
+            "Capacidad: confirmación", 1, 50, 2, key="cca"
         )
 
         st.markdown("**Tiempos promedio por etapa**")
         t_val_actual = st.number_input(
-            "Validación académica (min)", 0.10, 30.0, 1.50, 0.10, key="tva"
+            "Validación (min)", 0.10, 30.0, 1.50, 0.10, key="tva"
         )
         t_sel_actual = st.number_input(
-            "Selección de cursos (min)", 0.10, 30.0, 2.50, 0.10, key="tsa"
+            "Selección (min)", 0.10, 30.0, 2.50, 0.10, key="tsa"
         )
         t_ver_actual = st.number_input(
-            "Validación del carrito (min)", 0.10, 30.0, 1.00, 0.10, key="tvera"
+            "Verificación (min)", 0.10, 30.0, 1.00, 0.10, key="tvera"
         )
         t_con_actual = st.number_input(
-            "Inscripción final (min)", 0.10, 30.0, 0.80, 0.10, key="tca"
+            "Confirmación (min)", 0.10, 30.0, 0.80, 0.10, key="tca"
         )
 
     with st.expander("Escenario mejorado", expanded=False):
@@ -381,46 +357,38 @@ with st.sidebar:
             key="vac_mejorado",
         )
         prob_mejorado = st.slider(
-            "Probabilidad de cumplir requisitos y pagos",
+            "Probabilidad de usuario válido",
             min_value=0.50,
             max_value=1.00,
             value=0.98,
             step=0.01,
             key="prob_mejorado",
         )
-        prob_carrito_mejorado = st.slider(
-            "Probabilidad de superar validación del carrito",
-            min_value=0.50,
-            max_value=1.00,
-            value=0.97,
-            step=0.01,
-            key="prob_carrito_mejorado",
-        )
         cap_val_mejorado = st.number_input(
-            "Capacidad: validación académica", 1, 50, 4, key="cvm"
+            "Capacidad: validación", 1, 50, 4, key="cvm"
         )
         cap_sel_mejorado = st.number_input(
-            "Capacidad: selección de cursos", 1, 50, 5, key="csm"
+            "Capacidad: selección", 1, 50, 5, key="csm"
         )
         cap_ver_mejorado = st.number_input(
-            "Capacidad: validación del carrito", 1, 50, 4, key="cverm"
+            "Capacidad: verificación", 1, 50, 4, key="cverm"
         )
         cap_con_mejorado = st.number_input(
-            "Capacidad: inscripción final", 1, 50, 4, key="ccm"
+            "Capacidad: confirmación", 1, 50, 4, key="ccm"
         )
 
         st.markdown("**Tiempos promedio por etapa**")
         t_val_mejorado = st.number_input(
-            "Validación académica (min)", 0.10, 30.0, 1.20, 0.10, key="tvm"
+            "Validación (min)", 0.10, 30.0, 1.20, 0.10, key="tvm"
         )
         t_sel_mejorado = st.number_input(
-            "Selección de cursos (min)", 0.10, 30.0, 2.00, 0.10, key="tsm"
+            "Selección (min)", 0.10, 30.0, 2.00, 0.10, key="tsm"
         )
         t_ver_mejorado = st.number_input(
-            "Validación del carrito (min)", 0.10, 30.0, 0.75, 0.05, key="tverm"
+            "Verificación (min)", 0.10, 30.0, 0.75, 0.05, key="tverm"
         )
         t_con_mejorado = st.number_input(
-            "Inscripción final (min)", 0.10, 30.0, 0.60, 0.10, key="tcm"
+            "Confirmación (min)", 0.10, 30.0, 0.60, 0.10, key="tcm"
         )
 
     ejecutar = st.button(
@@ -444,7 +412,6 @@ actual = ConfiguracionEscenario(
     t_confirmacion=float(t_con_actual),
     vacantes=int(vacantes_actual),
     prob_usuario_valido=float(prob_actual),
-    prob_carrito_valido=float(prob_carrito_actual),
     semilla=int(semilla),
 )
 
@@ -462,7 +429,6 @@ mejorado = ConfiguracionEscenario(
     t_confirmacion=float(t_con_mejorado),
     vacantes=int(vacantes_mejorado),
     prob_usuario_valido=float(prob_mejorado),
-    prob_carrito_valido=float(prob_carrito_mejorado),
     semilla=int(semilla),
 )
 
@@ -481,7 +447,7 @@ if "resultados" not in st.session_state:
     with columnas[1]:
         tarjeta_info(
             "2. Colas y recursos",
-            "Los estudiantes esperan cuando se satura la validación académica, la selección, el carrito o la inscripción final.",
+            "Los estudiantes esperan cuando la capacidad de validación, selección, verificación o confirmación está ocupada.",
         )
     with columnas[2]:
         tarjeta_info(
@@ -716,50 +682,34 @@ else:
             """
             **Entidad:** estudiante que intenta completar su matrícula.
 
-            **Referencia institucional:** el flujo público de Campus Solutions
-            se agrupó en cuatro etapas para mantener un modelo medible y
-            comprensible.
+            **Eventos discretos:** llegada al sistema, inicio y fin de validación,
+            selección de cursos, verificación de vacantes, confirmación y salida.
 
-            **Etapa 1 — Validación académica:** revisión de condiciones,
-            requisitos y pagos pendientes.
+            **Recursos:** capacidades limitadas de validación, selección,
+            verificación y confirmación.
 
-            **Etapa 2 — Selección:** elección de cursos, secciones, turnos y
-            componentes.
-
-            **Etapa 3 — Validación del carrito:** revisión de créditos,
-            cruces de horario, restricciones y disponibilidad de vacantes.
-
-            **Etapa 4 — Inscripción final:** inscripción, finalización del
-            proceso y disponibilidad del horario.
-
-            **Eventos discretos:** llegada, inicio y fin de cada etapa,
-            rechazo, confirmación y salida.
+            **Colas:** aparecen cuando todos los recursos de una etapa están
+            ocupados.
 
             **Resultados:** tiempo total, espera, cola máxima, utilización,
-            matrículas completadas, rechazos y congestión.
+            matrículas exitosas, rechazos y congestión.
 
             **Comparación:** el escenario mejorado aumenta capacidades,
-            reduce tiempos o amplía vacantes para evaluar alternativas antes
-            de intervenir un sistema real.
+            reduce tiempos de servicio o amplía vacantes para evaluar si el
+            desempeño mejora antes de aplicar cambios en un sistema real.
             """
         )
 
         st.warning(
-            "Los resultados no representan métricas oficiales de la UPSJB. Para el "
-            "informe final, los valores deben presentarse como supuestos de "
-            "simulación o reemplazarse por datos observados y autorizados."
-        )
-
-        st.markdown(
-            "[Consultar guía pública de matrícula en Campus Solutions de la UPSJB]"
-            "(https://sae.upsjb.edu.pe/hc/es-419/articles/"
-            "26611830588827-Pasos-para-realizar-una-matr%C3%ADcula-en-Campus-Solutions)"
+            "Los resultados dependen de los parámetros ingresados. Para el "
+            "informe final se recomienda reemplazar los valores supuestos por "
+            "datos observados o sustentados."
         )
 
 st.markdown(
     """
     <div class="footer">
-        Proyecto académico · Flujo de referencia Campus Solutions UPSJB · Optimización del proceso de matrícula
+        Proyecto académico · Optimización del proceso de matrícula en línea
         mediante simulación de eventos discretos
     </div>
     """,
